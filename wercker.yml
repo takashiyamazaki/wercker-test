@@ -25,3 +25,37 @@ build:
         code: |
           echo "hello world!"
 
+deploy:
+  steps:
+    - script:
+      name: install ssh and rsync
+      code: |
+        apt-get update
+        apt-get install -y ssh
+        apt-get install -y rsync
+    - script:
+      name: make .ssh directory
+      code: mkdir -p "$HOME/.ssh"
+    - create-file:
+      name: write ssh key
+      filename: $HOME/.ssh/id_rsa
+      overwrite: true
+      hide-from-log: true
+      content: $WERCKER_PEM_KEY
+    - script:
+      name: set permissions for ssh key
+      code: chmod 0400 $HOME/.ssh/id_rsa
+    - script:
+      name: connect ec2
+      code: ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null centos@$EC2_IP
+    - create-file:
+      name: create dummy file
+      filename: $HOME/dummy.txt
+      overwrite: true
+      hide-from-log: true
+      content: "hogehoge"
+    - script:
+      name: rsync ec2
+      code: |
+        echo $HOME
+        rsync -avzr -e "ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $HOME/dummy.txt centos@$EC2_IP:~/
