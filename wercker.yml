@@ -57,5 +57,4 @@ deploy:
     - script:
       name: rsync ec2
       code: |
-        echo $HOME
         rsync -avzr -e "ssh -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $HOME/dummy.txt centos@$EC2_IP:~/
